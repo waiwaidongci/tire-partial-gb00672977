@@ -8,7 +8,7 @@ from sqlalchemy import text
 from scripts.seed_demo import seed
 from src.config.settings import SEED
 from src.middlewares.http import install
-from src.models.database import cache, engine
+from src.models.database import cache, ensure_schema, engine
 from src.models.tables import metadata
 from src.routes.api import router
 
@@ -16,6 +16,7 @@ from src.routes.api import router
 @asynccontextmanager
 async def lifespan(app):
     metadata.create_all(engine)
+    ensure_schema()
     if SEED:
         try:
             logging.info('Demo seed: %s', seed())
@@ -27,6 +28,8 @@ async def lifespan(app):
 app = FastAPI(title='业务分析工作台', lifespan=lifespan)
 install(app)
 app.include_router(router)
+# Also expose the same contract under /api for direct backend calls; nginx already strips /api.
+app.include_router(router, prefix='/api')
 
 
 @app.get('/health')

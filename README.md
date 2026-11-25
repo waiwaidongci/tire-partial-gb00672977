@@ -45,6 +45,16 @@
 | `hard_brakes_per_1000km` | 急制动频次（次/千公里） | float |
 | `tread_loss_mm` | 胎纹磨耗（毫米） | float |
 
+## 三源合窗、隔离与续跑
+
+月底三份来源分别上传：`history`（轮胎履历）、`pressure`（胎压巡检）、`brake_load`（制动载荷）。服务以 `window_end + tire_id` 为键拼出分析样本；缺少任一来源，或同一 `source + tire_id + version` 出现不同数值时，轮胎进入窗口快照的 `quarantine`，并通过 `reason`/`reasons` 标出“缺来源”或“同版数值冲突”。
+
+- 版本可由 CSV 的 `version`/`source_version` 列或请求中的 `version` 提供；旧版本记录只留存，不参与最新样本，因此不会覆盖同来源新件。
+- 补件可分批。页面默认按各批实际 CSV 条数累计申报；也可先调用 `POST /intake/declarations` 声明 `expected_total` 或分来源 `expected_counts`。收齐后，同一数据库事务写入不可变 `data_revisions.records` 与 `window_snapshots`，并切换活动快照及隔离名单。
+- `POST /intake/batches` 支持 `batch_uid`、`upload_id`、`client_token` 或 `Idempotency-Key` 续跑幂等；也可用 `POST /intake/resumable`、`PUT /intake/resumable/{id}/chunks/{index}`、`POST /intake/resumable/{id}/complete` 分块续传。
+- 分析任务绑定 `dataset_id`，也可传 `snapshot_id`。数据集记录不更新，所以切换前后提交或执行的分析都拿到完整整批；`POST /runs/{id}/recompute` 会用原数据集和原参数重新排队复算。
+- 原九列整表 `POST /datasets` 导入保持兼容。
+
 ## 启动
 
 ```sh

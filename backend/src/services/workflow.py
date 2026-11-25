@@ -5,7 +5,7 @@ from sqlalchemy import and_, insert, or_, select, update
 
 from src.constants.enums import State
 from src.models.database import add_event, engine, fetch_one
-from src.models.tables import datasets, deliveries, runs, schedules
+from src.models.tables import datasets, deliveries, runs, schedules, snapshots
 from src.services.data import parse_options
 
 
@@ -13,12 +13,38 @@ def add_run(body, actor):
     options = parse_options(body.options)
     now = time.time()
     with engine.begin() as connection:
-        if fetch_one(connection, datasets, body.dataset_id) is None:
+        dataset_id = getattr(body, 'dataset_id', None)
+        snapshot_id = getattr(body, 'snapshot_id', None)
+        if snapshot_id is not None:
+            snapshot = fetch_one(connection, snapshots, snapshot_id)
+            if snapshot is None:
+                raise HTTPException(404, '窗口快照不存在。')
+            # Historical snapshots are immutable and may still be analyzed; this is
+            # what lets an in-flight or repeated analysis stay on the pre-switch batch.
+            dataset_id = snapshot['dataset_id']
+        if dataset_id is None:
+            raise HTTPException(422, '请选择数据版本或窗口快照。')
+        if fetch_one(connection, datasets, dataset_id) is None:
             raise HTTPException(404, '数据版本不存在。')
-        key = connection.execute(insert(runs).values(dataset_id=body.dataset_id, options=options,
-                    state=State.queued.value, owner=actor, created=now)).inserted_primary_key[0]
+        key = connection.execute(insert(runs).values(dataset_id=dataset_id, snapshot_id=snapshot_id,
+                    options=options, state=State.queued.value, owner=actor, created=now)).inserted_primary_key[0]
         add_event(connection, actor, 'queue', key, now)
     return {'id': key, 'state': State.queued.value}
+
+
+def recompute_run(key, actor):
+    now = time.time()
+    with engine.begin() as connection:
+        old = fetch_one(connection, runs, key)
+        if old is None:
+            raise HTTPException(404, '分析任务不存在。')
+        if fetch_one(connection, datasets, old['dataset_id']) is None:
+            raise HTTPException(409, '当时绑定的数据版本已不存在，无法复算。')
+        new_key = connection.execute(insert(runs).values(
+            dataset_id=old['dataset_id'], snapshot_id=old.get('snapshot_id'), options=old['options'],
+            state=State.queued.value, owner=actor, created=now)).inserted_primary_key[0]
+        add_event(connection, actor, 'recompute', new_key, now)
+    return {'id': new_key, 'state': State.queued.value, 'dataset_id': old['dataset_id']}
 
 
 def claim_run():

@@ -1,7 +1,19 @@
 {
   "organization": "澄湾公交集团北场机务班，服务 B12、K07、N03、S21 四条线路，10 月先导盘点覆盖 60 条轮胎。",
   "context": "机务员月底用 Excel 对齐轮胎履历、冷态胎压巡检、车载急制动与客流载荷台账，以粗相关挑选点检对象。台账员合并同一观测窗口的数据，车队技师复核线路差异，早班检修调度接收复核报告。",
-  "input": "导入 beichang-tire-wear-2026-10.csv，每条轮胎一行。磨耗为期初胎纹深度减期末胎纹深度，轮胎编号在窗口内唯一。里程、胎压巡检、急制动及车组在线路上的平均载荷均取同期口径，胎龄以窗口起始日为准。",
+  "input": "月底盘点分别接收轮胎履历、胎压巡检和制动载荷三份台账，按 window_end 与 tire_id 拼为同一观测窗口样本；兼容原九列 beichang-tire-wear-2026-10.csv 整表导入。",
+  "intake": {
+    "sources": [
+      {"key": "history", "label": "轮胎履历", "filename": "tire-history-2026-10.csv", "fields": ["tire_id", "route", "window_end", "mileage_km", "tire_age_days", "tread_loss_mm"]},
+      {"key": "pressure", "label": "胎压巡检", "filename": "pressure-inspection-2026-10.csv", "fields": ["tire_id", "window_end", "low_pressure_pct"]},
+      {"key": "brake_load", "label": "制动载荷", "filename": "brake-load-2026-10.csv", "fields": ["tire_id", "window_end", "hard_brakes_per_1000km", "route_load_pct"]}
+    ],
+    "join_keys": ["window_end", "tire_id"],
+    "quarantine": ["缺来源", "同版数值冲突", "数值无效"],
+    "version_rule": "迟到的旧版本记录不得覆盖同来源新件；同版本不同数值进入隔离名单。",
+    "switch_rule": "补件可分批到达；按申报条数收齐后，在同一事务中一次性切换全窗样本和隔离名单。",
+    "analysis_rule": "分析绑定不可变 data_revisions.id / window_snapshots.id，因此并发分析只能取切换前或切换后的整批；中断续跑使用同一 upload_id/batch_uid/Idempotency-Key，不新增版本。"
+  },
   "output": "同一批记录的粗 Spearman、偏秩相关及差值，附全队和分线路诊断、复核动作与可分发状态，供机务班安排点检和补数。",
   "method": "并列值取平均秩。粗值为待查指标秩和磨耗秩的 Pearson 相关；偏秩是两列秩分别对所选控制项的秩做线性回归后，两个残差向量的 Pearson 相关。全队与各线路独立排秩。结果用于点检排序，可能受未纳入的胎批、轮位和共享车辆工况影响。",
   "failure": "混窗、轮胎编号重复、无效数值、全队少于 12 条或少于 2 条线路时退回导入补正。线路少于 8 条时保留诊断，偏秩留空。控制项无秩变异或共线、残差无变异及严重数值诊断时须复核，全队不满足诊断要求即暂停分发。",
