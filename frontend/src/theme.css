@@ -1,0 +1,15 @@
+@import url('https://fonts.googleapis.com/css2?family=Work+Sans:wght@400;600;700&family=Archivo+Narrow&display=swap');
+:root {
+  --text-font: 'Work Sans'; --title-font: 'Archivo Narrow';
+  --paper: oklch(.975 .012 147); --surface: oklch(.994 .006 147);
+  --ink: oklch(.235 .035 147); --quiet: oklch(.435 .038 147);
+  --stripe: oklch(.961 .014 147); --rule: oklch(.858 .024 147);
+  --accent: oklch(.445 0.098 147); --button-ink: oklch(.98 .007 147);
+  --focus: oklch(.64 0.098 147);
+  --side: oklch(.923 .029 147);
+  --side-ink: oklch(.255 .033 147);
+  --highlight: oklch(.866 .045 147);
+  --highlight-edge: oklch(.49 .10 147);
+  --side-width: 244px; --side-pad: 1.45rem;
+  --login-ratio: 1.52fr; --report-stripe: 5px;
+}

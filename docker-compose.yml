@@ -1,0 +1,76 @@
+name: tire-partial-gb0067
+x-python: &python
+  build: ./backend
+  environment:
+    DATABASE_URL: mysql+pymysql://research:research_local@db:3306/research?charset=utf8mb4
+    REDIS_URL: redis://redis:6379/0
+    JWT_SECRET: ${JWT_SECRET:?copy .env.example to .env}
+    SEED_DEMO: ${SEED_DEMO:-true}
+  volumes:
+    - research_files:/artifacts
+services:
+  frontend:
+    build: ./frontend
+    container_name: ${COMPOSE_PROJECT_NAME:-tire-partial-gb0067}-frontend
+    ports: ["127.0.0.1:${FRONTEND_PORT:-18291}:80"]
+    depends_on:
+      backend: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, wget, -q, -O, /dev/null, http://127.0.0.1/api/health]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  backend:
+    <<: *python
+    container_name: ${COMPOSE_PROJECT_NAME:-tire-partial-gb0067}-backend
+    ports: ["127.0.0.1:${BACKEND_PORT:-19291}:8000"]
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -c, "import urllib.request; urllib.request.urlopen('http://127.0.0.1:8000/health', timeout=2)"]
+      interval: 2s
+      timeout: 3s
+      retries: 25
+  worker:
+    <<: *python
+    container_name: ${COMPOSE_PROJECT_NAME:-tire-partial-gb0067}-worker
+    command: [python, -m, src.worker]
+    depends_on:
+      db: {condition: service_healthy}
+      redis: {condition: service_healthy}
+      backend: {condition: service_healthy}
+    healthcheck:
+      test: [CMD, python, -m, src.worker_health]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+  db:
+    container_name: ${COMPOSE_PROJECT_NAME:-tire-partial-gb0067}-db
+    image: mysql:8.0
+    environment:
+      MYSQL_USER: research
+      MYSQL_PASSWORD: research_local
+      MYSQL_ROOT_PASSWORD: research_root_local
+      MYSQL_DATABASE: research
+    ports: ["127.0.0.1:${DB_PORT:-17791}:3306"]
+    volumes: ["research_db:/var/lib/mysql"]
+    healthcheck:
+      test: [CMD-SHELL, 'mysql -h 127.0.0.1 --user=research --password=research_local --database=research -e "SELECT 1"']
+      interval: 2s
+      timeout: 4s
+      retries: 35
+  redis:
+    image: redis:7-alpine
+    container_name: ${COMPOSE_PROJECT_NAME:-tire-partial-gb0067}-redis
+    command: [redis-server, --appendonly, 'yes']
+    volumes: ["research_cache:/data"]
+    healthcheck:
+      test: [CMD, redis-cli, ping]
+      interval: 2s
+      timeout: 3s
+      retries: 15
+volumes:
+  research_db:
+  research_cache:
+  research_files:

@@ -1,0 +1,70 @@
+* {box-sizing:border-box}
+:root {font-family:var(--text-font), 'PingFang SC', 'Microsoft YaHei', sans-serif; font-size:15px; color:var(--ink); background:var(--paper); color-scheme:light}
+body {margin:0; min-width:320px}
+a {color:var(--accent); text-underline-offset:3px}
+button,input,select,textarea {font:inherit}
+button,.button {border:1px solid var(--accent); padding:.65rem 1rem; background:var(--accent); color:var(--button-ink); border-radius:3px; cursor:pointer; display:inline-flex; align-items:center; min-height:40px; text-decoration:none; transition:transform .18s cubic-bezier(.16,1,.3,1)}
+button:not(:disabled):active,.button:active {transform:translateY(2px)}
+button:disabled {opacity:.55;cursor:default}
+.secondary {background:transparent;color:var(--accent)}
+:focus-visible {outline:3px solid var(--focus);outline-offset:3px}
+h1,h2,h3,.workspace aside strong {font-family:var(--title-font), 'Songti SC', 'Microsoft YaHei', serif}
+h1 {font-size:clamp(2rem,4vw,3.5rem); margin:.2rem 0 .45rem; line-height:1.12; letter-spacing:-.032em}
+h2 {font-size:clamp(1.2rem,2vw,1.65rem);margin:0 0 .85rem}
+h3 {margin:1.6rem 0 .65rem}
+p,li {line-height:1.65}
+li+li {margin-top:.35rem}
+.kicker {font-weight:650; letter-spacing:.12em; color:var(--accent); font-size:.83rem; margin:0}
+.hint {color:var(--quiet);font-size:.87rem}
+.error:empty {display:none}
+.error {color:oklch(.43 .16 25);font-weight:650}
+.notice,.empty {background:var(--surface);border-inline-start:4px solid var(--accent);padding:.8rem 1.1rem;margin:.8rem 0}
+.workspace {display:grid;grid-template-columns:var(--side-width) minmax(0,1fr); min-height:100vh}
+.workspace aside {position:sticky;top:0;height:100dvh;display:flex;flex-direction:column;gap:1.2rem;padding:2rem var(--side-pad);background:var(--side);color:var(--side-ink);border-inline-end:1px solid var(--rule)}
+.workspace aside p {margin:0 0 .5rem;font-size:.82rem;opacity:.78}
+.workspace aside strong {font-size:clamp(1.15rem,2vw,1.7rem);line-height:1.36;display:block}
+nav {display:grid;gap:.45rem}
+nav a {color:inherit;text-decoration:none;padding:.64rem .62rem;border-inline-start:3px solid transparent;line-height:1.45;overflow-wrap:anywhere}
+nav a:hover,nav a[aria-current] {background:var(--highlight);border-inline-start-color:var(--highlight-edge)}
+nav a[aria-current] {font-weight:730}
+.workspace aside footer {margin-top:auto;display:grid;gap:.55rem;font-size:.85rem}
+.workspace aside footer button {width:max-content;color:inherit;border-color:currentColor}
+.workspace main {min-width:0; padding:2.6rem clamp(1.2rem,4vw,3.75rem) 3.5rem}
+.page-head {display:flex;justify-content:space-between;gap:1rem;align-items:flex-end;border-block-end:2px solid var(--ink);padding-bottom:1rem;margin-bottom:1.65rem}
+.page-head>span {font-family:ui-monospace,monospace;color:var(--quiet);white-space:nowrap;margin-bottom:.5rem}
+.page {animation:reveal .28s cubic-bezier(.16,1,.3,1) both}
+@keyframes reveal {from {opacity:.6;transform:translateY(4px)}to{opacity:1;transform:translateY(0)}}
+section {margin:0 0 1.75rem;padding:0 0 1.25rem;border-block-end:1px solid var(--rule)}
+.summary {max-width:75ch}
+form {display:grid;gap:.75rem;max-width:100%}
+form button {justify-self:start}
+label {display:grid;gap:.35rem;min-width:0;font-weight:650;line-height:1.45}
+input,select,textarea {width:100%;min-height:40px;padding:.52rem .7rem;border:1px solid var(--rule);border-radius:3px;color:var(--ink);background:var(--surface)}
+textarea {min-height:95px;resize:vertical}
+.inline-form {grid-template-columns:repeat(auto-fit,minmax(min(200px,100%),1fr));align-items:end;margin:.8rem 0 1rem}
+.inline-form [data-error] {grid-column:1/-1;margin:0}
+#review {max-width:68ch}
+#revision,#pick-run {max-width:38rem}
+.table-wrap {overflow:auto;max-width:100%;border-block:1px solid var(--rule)}
+table {width:100%;border-collapse:collapse;font-variant-numeric:tabular-nums;text-align:left}
+caption,th,td {padding:.65rem .75rem;line-height:1.42}
+th {white-space:nowrap;background:var(--surface);color:var(--quiet);font-weight:680}
+td {border-top:1px solid var(--rule);min-width:80px;overflow-wrap:anywhere}
+tr:nth-child(even) td {background:var(--stripe)}
+.reading {margin:1rem 0 1.4rem;background:var(--surface);padding:clamp(1rem,3vw,2rem);border-inline-start:var(--report-stripe) solid var(--accent)}
+.metrics {display:flex;flex-wrap:wrap;gap:1rem 2rem;margin:1rem 0;padding:0 0 .8rem;border-block-end:1px solid var(--rule)}
+.metrics dt {font-size:.83rem;color:var(--quiet)}
+.metrics dd {font-size:1.28rem;font-weight:700;margin:.32rem 0 0}
+figure {margin:1.4rem 0;max-width:56rem}
+figcaption {font-weight:700;margin-bottom:.55rem}
+.chart-row {display:grid;grid-template-columns:minmax(6rem,1fr) minmax(4rem,2fr) minmax(3rem,.45fr);gap:.6rem;align-items:center;margin:.4rem 0;font-size:.86rem}
+.chart-track {background:var(--stripe);border-inline:1px solid var(--rule);height:10px;position:relative}
+.chart-track::before {content:'';position:absolute;inset-inline-start:50%;height:100%;border-inline-start:1px solid var(--rule)}
+.chart-track i {position:absolute;top:0;height:100%;background:var(--accent)}
+.login {min-height:100dvh;display:grid;grid-template-columns:minmax(0,var(--login-ratio)) minmax(245px,.85fr);align-items:center;gap:clamp(2rem,6vw,6rem);padding:clamp(2rem,8vw,8rem);max-width:1450px;margin:auto}
+.login-context {border-block:1px solid var(--rule);padding:3rem 0;max-width:65ch}
+.login-context h1 {font-size:clamp(2.65rem,5.1vw,5.05rem);margin:.5rem 0 1.5rem}
+.login form {background:var(--surface);padding:clamp(1.2rem,3.7vw,3.35rem);border-block-start:var(--report-stripe) solid var(--accent)}
+@media (max-width:1000px) {.workspace {grid-template-columns:minmax(180px,24%) minmax(0,1fr)} .workspace aside {padding-inline:1rem}}
+@media (max-width:767px) {.workspace {display:block}.workspace aside {position:static;height:auto;padding:1.05rem;gap:.72rem}.workspace aside nav {grid-template-columns:repeat(2,minmax(0,1fr));gap:.14rem}.workspace aside footer {display:flex;align-items:center;justify-content:space-between}.workspace main {padding:1.3rem 1rem 2rem}.login {grid-template-columns:1fr;align-content:center;gap:1rem}.login-context {padding:1rem 0}.page-head {align-items:flex-start}.table-wrap {font-size:.89rem}}
+@media (prefers-reduced-motion:reduce) {* {animation:none!important;transition:none!important}}
